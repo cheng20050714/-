@@ -1,47 +1,44 @@
-'''
-8 3
-1 3 -1 -3 5 3 6 7
-'''
-
-import sys
 from collections import deque
 
-def sliding_window(n, k, arr):
-    min_result = []
-    max_result = []
-    
-    min_q = deque()
-    for i in range(n):
-        # 移除超出窗口范围的元素
-        while min_q and min_q[0] <= i - k:
-            min_q.popleft()
-        
-        # 维护单调递增队列
-        while min_q and arr[min_q[-1]] >= arr[i]:
-            min_q.pop()
-        
-        min_q.append(i)
-        
-        # 当窗口形成后开始记录结果
-        if i >= k - 1:
-            min_result.append(str(arr[min_q[0]]))
-    
+def solve():
+    min_width = float('inf')
     max_q = deque()
-    for i in range(n):
-        while max_q and max_q[0] <= i - k:
-            max_q.popleft()
-        
-        while max_q and arr[max_q[-1]] <= arr[i]:
-            max_q.pop()
-        
-        max_q.append(i)
-        
-        if i >= k - 1:
-            max_result.append(str(arr[max_q[0]]))
+    min_q = deque()
+    left = 0
     
-    print(' '.join(min_result))
-    print(' '.join(max_result))
+    for right in range(N):
+        x_right_value, y_right_value = drops[right]
+        
+        # 维护单调队列（右边界）
+        while max_q and drops[max_q[-1]][1] <= y_right_value:
+            max_q.pop()
+        max_q.append(right)
+        
+        while min_q and drops[min_q[-1]][1] >= y_right_value:
+            min_q.pop()
+        min_q.append(right)
+        
+        # 单调队列构建完成后
+        # 开始改变窗口大小
+        # 寻找符合条件的花盆长度D
+        while left <= right and drops[max_q[0]][1] - drops[min_q[0]][1] >= D:
+            current_width = x_right_value - drops[left][0]
+            if current_width < min_width:
+                min_width = current_width
+            # 维护单调队列（左边届）
+            if max_q[0] == left:
+                max_q.popleft()
+            if min_q[0] == left:
+                min_q.popleft()
+            left += 1
+    
+    print(min_width if min_width != float('inf') else -1)
 
-n,k = map(int, input().split())
-arr = list(map(int, input().split()))
-sliding_window(n, k, arr)
+N, D = map(int, input().split())
+drops = []
+for _ in range(N):
+    x, y = map(int, input().split())
+    drops.append((x, y))
+drops.sort()
+
+solve()
