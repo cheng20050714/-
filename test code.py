@@ -1,44 +1,51 @@
-from collections import deque
+import sys
+import math
+
+MOD = 10**9 + 7
 
 def solve():
-    min_width = float('inf')
-    max_q = deque()
-    min_q = deque()
-    left = 0
+    n, k = map(int, sys.stdin.readline().split())
+    a = list(map(int, sys.stdin.readline().split()))
     
-    for right in range(N):
-        x_right_value, y_right_value = drops[right]
-        
-        # 维护单调队列（右边界）
-        while max_q and drops[max_q[-1]][1] <= y_right_value:
-            max_q.pop()
-        max_q.append(right)
-        
-        while min_q and drops[min_q[-1]][1] >= y_right_value:
-            min_q.pop()
-        min_q.append(right)
-        
-        # 单调队列构建完成后
-        # 开始改变窗口大小
-        # 寻找符合条件的花盆长度D
-        while left <= right and drops[max_q[0]][1] - drops[min_q[0]][1] >= D:
-            current_width = x_right_value - drops[left][0]
-            if current_width < min_width:
-                min_width = current_width
-            # 维护单调队列（左边届）
-            if max_q[0] == left:
-                max_q.popleft()
-            if min_q[0] == left:
-                min_q.popleft()
-            left += 1
-    
-    print(min_width if min_width != float('inf') else -1)
+    a = [0] + a
 
-N, D = map(int, input().split())
-drops = []
-for _ in range(N):
-    x, y = map(int, input().split())
-    drops.append((x, y))
-drops.sort()
+    # 计算前缀对数和
+    prefix_log = [0.0] * (n + 1)
+    for i in range(1, n + 1):
+        prefix_log[i] = prefix_log[i - 1] + math.log2(a[i])
+    
+    max_log = -1.0
+    max_prod = 0
+    
+    # 辅助函数：构造回文串并处理
+    def update(l, r, center_val):
+        nonlocal max_log, max_prod
+        changes = 0
+        cur_prod = center_val  
+        
+        while l >= 1 and r <= n:
+            if a[l] != a[r]:
+                changes += 1
+            if changes > k:
+                break
+                
+            cur_prod = (cur_prod * a[l] * a[r]) % MOD
+            current_log = prefix_log[r] - prefix_log[l-1]
+            
+            if current_log > max_log or (current_log == max_log and cur_prod > max_prod):
+                max_log = current_log
+                max_prod = cur_prod
+            
+            l -= 1
+            r += 1
+    
+    # 枚举每个可能的中心位置
+    for i in range(1, n + 1):
+        # 奇数长度回文串，中心是a[i]
+        update(i - 1, i + 1, a[i])
+        # 偶数长度回文串，中心是虚拟的1
+        update(i, i + 1, 1)
+    
+    print(max_prod)
 
 solve()
